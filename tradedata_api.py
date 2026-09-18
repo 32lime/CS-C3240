@@ -16,7 +16,7 @@ def trade_api_call(df, cid, max_retries, max_trades):
     while len(trades) < max_trades:
         params = {
                 "market": cid,
-                "limit": 500,  #Fetch 500 most recent trades for the market
+                "limit": 500,  #Fetch 500 most recent trades for the market. This is the page limit for this API 
                 "offset": offset
             }
         success = False
@@ -24,14 +24,12 @@ def trade_api_call(df, cid, max_retries, max_trades):
 
         while attempt < max_retries:
             try:
-                print("response going out")
                 response = requests.get(api_url, params=params, timeout=10)
 
                 if response.status_code == 200:
                     fetched_trades = response.json()
                     trades.extend(fetched_trades)
                     success = True
-                    break
 
                     if len(fetched_trades) < limit:
                         break
@@ -39,7 +37,7 @@ def trade_api_call(df, cid, max_retries, max_trades):
                     offset += limit
                     time.sleep(0.1)
 
-                elif response.status_code == 429:
+                elif response.status_code == 429: #too many requests, wait for a while and try again
                     wait_time = (attempt + 1) * 2
                     time.sleep(wait_time)
                     attempt += 1
@@ -60,7 +58,6 @@ def trade_api_call(df, cid, max_retries, max_trades):
 
 
 def calculate_features(df, cid, trades_list):
-    calculations_done = 0
     n = len(trades_list)
 
     if n < 2:
@@ -107,17 +104,16 @@ def calculate_features(df, cid, trades_list):
     df.loc[df['conditionId'] == cid, 'trade_size_std_usd_last_2500'] = trade_size_sd
     df.loc[df['conditionId'] == cid, 'price_volatility_last_2500_trades'] = prices_sd
 
-    print(calculations_done)
-    calculations_done += 1
+  
 
 
 def main():
     df = pd.read_csv("selected_markets.csv", low_memory=False)
 
-    df['trade_size_avg_usd_last_500'] = np.nan
-    df['trade_size_std_usd_last_500'] = np.nan
-    df['price_volatility_last_500_trades'] = np.nan
-    df['trades_per_hour_last_500_trades'] = np.nan
+    df['trade_size_avg_usd_last_2500'] = np.nan
+    df['trade_size_std_usd_last_2500'] = np.nan
+    df['price_volatility_last_2500_trades'] = np.nan
+    df['trades_per_hour_last_2500_trades'] = np.nan
  
 
     for market in df.itertuples():
@@ -125,12 +121,14 @@ def main():
         trade_api_call(df, cid, 3, 2500)
         time.sleep(0.15)
 
+    # clean up column names
     df = df.rename(columns={
     "market_volume": "market_total_volume",
     "spread": "market_spread"
     })
 
 
+    #this drops all columns except for the ones listed
     final_column_order = [
         "category",
         "lifespan_days",
@@ -145,8 +143,6 @@ def main():
     df = df[final_column_order]
 
     
-
-
     output_filename = "polymarket_ml.csv"
     df.to_csv(output_filename, index=False)
 
