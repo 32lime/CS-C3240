@@ -1,4 +1,4 @@
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
@@ -46,24 +46,33 @@ def scale():
 def main():
     X_train_scaled, X_test_scaled, y_train, y_test = scale()
 
-    best_k = 0
-    best_score = 0
+    param_grid = {"n_neighbors": [1, 3, 5, 7, 9, 11]} # number of neighbors to consider when choosing
 
-    for k in [1, 3, 5, 7, 9, 11]:
-        knn_model = KNeighborsClassifier(n_neighbors=k)
-        knn_model.fit(X_train_scaled, y_train)
-        y_prediction = knn_model.predict(X_test_scaled)
-        accuracy = accuracy_score(y_test, y_prediction)
+    grid_search = GridSearchCV(
+        estimator=KNeighborsClassifier(),
+        param_grid=param_grid,
+        cv=5,  # 5-fold cross-validation
+        scoring="accuracy",
+    )
 
-        y_train_prediction = knn_model.predict(X_train_scaled)
-        train_accuracy = accuracy_score(y_train, y_train_prediction)
-        
-        print(f"k={k:<2} | Train Accuracy: {train_accuracy:.4f} | Test Accuracy: {accuracy:.4f}")
+    grid_search.fit(X_train_scaled, y_train)
 
-        if accuracy > best_score:
-            best_score = accuracy
-            best_k = k
-    print(f"Best k: {best_k} with accuracy: {best_score}")
+    for k, mean_score in zip(
+        grid_search.cv_results_["param_n_neighbors"],
+        grid_search.cv_results_["mean_test_score"],
+    ):
+        print(f"k={k:<2} | CV Accuracy: {mean_score:.4f}")
+
+    best_knn = grid_search.best_estimator_
+
+    print(f"Optimal Parameters: {grid_search.best_params_}")
+    print(f"Best 5-Fold CV Accuracy: {grid_search.best_score_ * 100:.2f}%")
+
+    train_preds = best_knn.predict(X_train_scaled)
+    test_preds = best_knn.predict(X_test_scaled)
+
+    print(f"Training Accuracy (Best Model): {accuracy_score(y_train, train_preds) * 100:.2f}%")
+    print(f"Test Set Accuracy:              {accuracy_score(y_test, test_preds) * 100:.2f}%")
 
 
 if __name__ == "__main__":
