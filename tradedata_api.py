@@ -36,6 +36,7 @@ def trade_api_call(df, cid, max_retries, max_trades):
 
                     offset += limit
                     time.sleep(0.1)
+                    break
 
                 elif response.status_code == 429: #too many requests, wait for a while and try again
                     wait_time = (attempt + 1) * 2
@@ -114,12 +115,15 @@ def main():
     df['trade_size_std_usd_last_2500'] = np.nan
     df['price_volatility_last_2500_trades'] = np.nan
     df['trades_per_hour_last_2500_trades'] = np.nan
- 
+    
+    counter = 0
 
     for market in df.itertuples():
         cid = market.conditionId
         trade_api_call(df, cid, 3, 2500)
         time.sleep(0.15)
+        counter += 1
+        print(f"Processed {counter} markets")
 
     # clean up column names
     df = df.rename(columns={
