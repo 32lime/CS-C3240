@@ -34,10 +34,10 @@ def main():
     X_train, X_test, y_train, y_test = scale()
     
     param_grid = { 
-        'n_estimators': [100, 200], 
-        'max_depth': [None, 4, 8], 
-        'min_samples_leaf': [1, 2, 5], 
-        'max_features': ['sqrt', None] 
+        'n_estimators': [100, 200],  #number of trees
+        'max_depth': [None, 4, 8], #maximum depth of a tree
+        'min_samples_leaf': [1, 2, 5],  #minimum number of datapoints that need to be at a leaf node
+        'max_features': ['sqrt', None]  #how many features to consider 
     }
 
     base_model = RandomForestClassifier(random_state=42) 

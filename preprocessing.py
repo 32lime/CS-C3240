@@ -21,9 +21,9 @@ def initial_filtering(filename):
     sports_mask = df_filtered["tags"].str.contains("Sports|NFL|NBA|NHL|MLB|Soccer|Football|Basketball|Baseball|Tennis|Golf|UFC|MMA|Formula 1|F1|Olympics|FIFA|UEFA|Premier League|NCAA|Super Bowl|World Cup", case=False, na=False) #Select sports rows
 
     df_filtered["category"] = ""
-    df_filtered.loc[crypto_mask, "category"] = "Crypto"
-    df_filtered.loc[politics_mask, "category"] = "Politics"
-    df_filtered.loc[sports_mask, "category"] = "Sports"
+    df_filtered.loc[crypto_mask, "category"] = "Crypto" #apply mask to crypto rows
+    df_filtered.loc[politics_mask, "category"] = "Politics" #apply mask to politics rows
+    df_filtered.loc[sports_mask, "category"] = "Sports" #apply mask to sports rows
 
     columns_to_keep = ["id", "lifespan_days", "category"]
     df_clean_events = df_filtered[columns_to_keep]
@@ -42,8 +42,8 @@ def initial_filtering(filename):
 def market_id_merge(filename, filtered_events):
     market_columns = [
         "conditionId", #this is needed to fetch the trade data from polymarkets API
-        "event_id", #this is used to connect events from polymarket_events.csv to markets in polymarket_markets.csv
-        "question",
+        "event_id", #this is used to connect events from polymarket_events.csv to markets in polymarket_markets.csv 
+        "question", #we'll keep this for now to see if the category selection is sane 
         "spread",
         "volume",
    ]
