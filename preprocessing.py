@@ -25,7 +25,6 @@ def initial_filtering(filename):
     df_filtered.loc[politics_mask, "category"] = "Politics"
     df_filtered.loc[sports_mask, "category"] = "Sports"
 
-    # 7. Keep only the essential columns required to join with the Markets file
     columns_to_keep = ["id", "lifespan_days", "category"]
     df_clean_events = df_filtered[columns_to_keep]
 
